@@ -11,7 +11,7 @@
     <description>Addons to support working with Typesafe Config</description>
 
     <properties>
-        <java.version>8</java.version>
+        <java.version>9</java.version>
     </properties>
 
     <modules>
@@ -24,12 +24,12 @@
             <!-- Modules -->
             <dependency>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>spring</artifactId>
+                <artifactId>layer-strategy</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>layer-strategy</artifactId>
+                <artifactId>spring</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
@@ -43,9 +43,27 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.8.1</version>
                     <configuration>
-						<source>${java.version}</source>
-						<target>${java.version}</target>
+                        <release>8</release>
+                        <source>8</source>
+                        <target>8</target>
                     </configuration>
+                    <executions>
+                        <execution>
+                            <id>compile-java-9</id>
+                            <phase>compile</phase>
+                            <goals>
+                                <goal>compile</goal>
+                            </goals>
+                            <configuration>
+                                <release>9</release>
+                                <source>9</source>
+                                <target>9</target>
+                                <compileSourceRoots>
+                                    <compileSourceRoot>${project.basedir}/src/main/module</compileSourceRoot>
+                                </compileSourceRoots>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
             </plugins>
         </pluginManagement>

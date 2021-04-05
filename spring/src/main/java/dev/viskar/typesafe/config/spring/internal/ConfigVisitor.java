@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 /**
  * Helper class to walk through a Config's structure and emit Spring-style paths for each key/value.
  */
-class ConfigVisitor {
+public class ConfigVisitor {
 
     private Listener<Map<String, Object>> onMap = Listener.nop();
     private Listener<List<Object>> onList = Listener.nop();
@@ -20,22 +20,22 @@ class ConfigVisitor {
     // Configure Listeners
     // ************************************************************************
 
-    ConfigVisitor onMap(Listener<Map<String, Object>> callback) {
+    public ConfigVisitor onMap(Listener<Map<String, Object>> callback) {
         this.onMap = callback;
         return this;
     }
 
-    ConfigVisitor onList(Listener<List<Object>> callback) {
+    public ConfigVisitor onList(Listener<List<Object>> callback) {
         this.onList = callback;
         return this;
     }
 
-    ConfigVisitor onValue(Listener<Object> callback) {
+    public ConfigVisitor onValue(Listener<Object> callback) {
         this.onValue = callback;
         return this;
     }
 
-    ConfigVisitor onAny(Listener<Object> callback) {
+    public ConfigVisitor onAny(Listener<Object> callback) {
         this.onAny = callback;
         return this;
     }
@@ -44,13 +44,13 @@ class ConfigVisitor {
     // Visitor
     // ************************************************************************
 
-    void visitRoot(Config config) {
+    public void visitRoot(Config config) {
         for (Entry<String, Object> e : config.root().unwrapped().entrySet()) {
             visit("", e.getKey(), e.getValue());
         }
     }
 
-    void visit(String parentPosition, String position, Object any) {
+    public void visit(String parentPosition, String position, Object any) {
         onAny.accept(parentPosition, position, any);
         if (any instanceof Map) {
             visitMap(parentPosition, position, (Map) any);
@@ -61,14 +61,14 @@ class ConfigVisitor {
         }
     }
 
-    void visitMap(String parentPosition, String position, Map<String, Object> map) {
+    public void visitMap(String parentPosition, String position, Map<String, Object> map) {
         onMap.accept(parentPosition, position, map);
         for (Entry<String, Object> e : map.entrySet()) {
             visit(position, position + "." + e.getKey(), e.getValue());
         }
     }
 
-    void visitList(String parentPosition, String position, List<Object> list) {
+    public void visitList(String parentPosition, String position, List<Object> list) {
         onList.accept(parentPosition, position, list);
         int i = 0;
         for (Object value : list) {
@@ -77,7 +77,7 @@ class ConfigVisitor {
         }
     }
 
-    void visitValue(String parentPosition, String position, Object value) {
+    public void visitValue(String parentPosition, String position, Object value) {
         onValue.accept(parentPosition, position, value);
     }
 
@@ -85,7 +85,7 @@ class ConfigVisitor {
     // Helpers
     // ************************************************************************
 
-    interface Listener<T> {
+    public interface Listener<T> {
 
         void accept(String parentPosition, String position, T value);
 

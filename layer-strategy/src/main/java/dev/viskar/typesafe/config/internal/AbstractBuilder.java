@@ -3,6 +3,7 @@ package dev.viskar.typesafe.config.internal;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
+import dev.viskar.typesafe.config.CustomConfigLoadingStrategy.CoreBuilder;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -10,7 +11,7 @@ import java.net.URL;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-public abstract class AbstractParseFunctions<T extends AbstractParseFunctions<T> & ParseFunctions<T>> implements ParseFunctions<T> {
+public abstract class AbstractBuilder<T extends CoreBuilder<T>> implements CoreBuilder<T> {
 
     @Override
     public T addConfig(Config config) {
@@ -51,12 +52,12 @@ public abstract class AbstractParseFunctions<T extends AbstractParseFunctions<T>
     }
 
     @Override
-    public <P> T forEachProfile(Supplier<P[]> profiles, boolean preferFirst, BiConsumer<? super P, ParseFunctions<?>> builder) {
+    public <P> T forEachProfile(Supplier<P[]> profiles, boolean preferFirst, BiConsumer<? super P, CoreBuilder<?>> builder) {
         return addConfig(() -> combineProfiles(profiles.get(), preferFirst, builder).get());
     }
 
     @Override
-    public <P> T forEachProfile(P[] profiles, boolean preferFirst, BiConsumer<? super P, ParseFunctions<?>> builder) {
+    public <P> T forEachProfile(P[] profiles, boolean preferFirst, BiConsumer<? super P, CoreBuilder<?>> builder) {
         return addConfig(combineProfiles(profiles, preferFirst, builder));
     }
 
@@ -64,7 +65,7 @@ public abstract class AbstractParseFunctions<T extends AbstractParseFunctions<T>
     // Helpers
     // ------------------------------------------------------------------------
 
-    private <P> Supplier<Config> combineProfiles(P[] profiles, boolean preferFirst, BiConsumer<? super P, ParseFunctions<?>> builder) {
+    private <P> Supplier<Config> combineProfiles(P[] profiles, boolean preferFirst, BiConsumer<? super P, CoreBuilder<?>> builder) {
         DefaultParseFunctions collector = new DefaultParseFunctions();
         if (preferFirst) {
             for (int i = 0; i < profiles.length; i++) {

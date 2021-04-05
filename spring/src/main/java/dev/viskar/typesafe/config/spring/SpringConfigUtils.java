@@ -1,7 +1,8 @@
-package dev.viskar.typesafe.config.spring.internal;
+package dev.viskar.typesafe.config.spring;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigObject;
+import dev.viskar.typesafe.config.spring.internal.ConfigVisitor;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

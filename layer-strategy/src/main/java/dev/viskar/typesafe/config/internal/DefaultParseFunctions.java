@@ -2,16 +2,13 @@ package dev.viskar.typesafe.config.internal;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import lombok.SneakyThrows;
+import dev.viskar.typesafe.config.CustomConfigLoadingStrategy.CoreBuilder;
 
-import java.io.File;
-import java.net.URL;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-public class DefaultParseFunctions extends AbstractParseFunctions<DefaultParseFunctions> implements ParseFunctions<DefaultParseFunctions>, Supplier<Config> {
+public class DefaultParseFunctions extends AbstractBuilder<DefaultParseFunctions> implements CoreBuilder<DefaultParseFunctions>, Supplier<Config> {
 
     /**
      * Layers, sorted from lowest priority to highest priority.

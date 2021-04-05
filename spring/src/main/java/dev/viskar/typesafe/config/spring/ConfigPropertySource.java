@@ -2,11 +2,12 @@ package dev.viskar.typesafe.config.spring;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import dev.viskar.typesafe.config.spring.internal.SpringConfigUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 
+import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -24,9 +25,14 @@ public class ConfigPropertySource extends MapPropertySource {
     // - Use static factory methods instead
     // ************************************************************************
 
-    protected ConfigPropertySource(String name, Config source) {
-        super(name, SpringConfigUtils.flatten(source));
-        this.keys = this.source.keySet().toArray(new String[0]);
+    protected ConfigPropertySource(String name, Config config) {
+        this(name, config, SpringConfigUtils.flatten(config));
+    }
+
+    protected ConfigPropertySource(String name, Config config, Map<String, Object> flatConfig) {
+        super(name, flatConfig);
+        this.keys = flatConfig.keySet().toArray(new String[0]);
+        Arrays.sort(this.keys);
     }
 
     // ************************************************************************

@@ -1,4 +1,4 @@
-open module dev.viskar.typesafe.config.addons.sprng {
+open module dev.viskar.typesafe.config.spring {
 
     requires transitive typesafe.config;
     requires transitive spring.core;
