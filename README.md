@@ -1,8 +1,12 @@
 # Addons for Typesafe Config
 
-This project contains addons to enhance Typesafe Config usage:
-* **Custom Loading Strategy Addon** - Helps configure application environments that have multiple layers/profiles of Configs to apply. A common situation in application deployments.
-* **Spring PropertySource Addon** - Provides a `PropertySoruce` wrapper for `Config` objects. Back your Spring Environment with your Typesafe Config properties. Take advantage of extra features like **import**s, and URL loading.
+This project contains addons as sub-modules to enhance Typesafe Config usage:
+* **CustomConfigLoadingStrategy - ConfigFactory Addon**
+  * Implements `ConfigLoadingStrategy` that can be fully customized with a builder API, and then installed as the global `ConfigLoadingStrategy`.
+ 
+ 
+* **ConfigPropertySource - Addon for Spring Framework**
+  * A `PropertySoruce` wrapper for `Config` objects so that they can be loaded into Spring Framework. Handles converting property paths into Spring conventions (maps, array notation, etc).
 
 ## Getting these Dependencies
 Artifacts are available in the [jitpack.io](https://jitpack.io/) repository. See examples below:
@@ -21,21 +25,21 @@ Artifacts are available in the [jitpack.io](https://jitpack.io/) repository. See
 ```xml
 <!-- All Modules -->
 <dependency>
-  <groupId>dev.viskar</groupId>
-  <artifactId>typesafe-config-addons</artifactId>
-  <version>${version}</version>
+    <groupId>dev.viskar</groupId>
+    <artifactId>typesafe-config-addons</artifactId>
+    <version>${version}</version>
 </dependency>
 ```
 ```xml
 <!-- Or Individual Dependencies -->
 <dependency>
-  <groupId>dev.viskar.typesafe-config-addons</groupId>
-  <artifactId>layer-strategy</artifactId>
-  <version>${version}</version>
+    <groupId>dev.viskar.typesafe-config-addons</groupId>
+    <artifactId>typesafe-config-addons-strategy</artifactId>
+    <version>${version}</version>
 </dependency>
 <dependency>
     <groupId>dev.viskar.typesafe-config-addons</groupId>
-    <artifactId>spring</artifactId>
+    <artifactId>typesafe-config-addons-spring</artifactId>
     <version>${version}</version>
 </dependency>
 ```
@@ -60,47 +64,64 @@ dependencies {
 ```groovy
 // Individual modules
 dependencies {
-  implementation 'dev.viskar.typesafe-config-addons:layer-strategy:{VERSION}'
-  implementation 'dev.viskar.typesafe-config-addons:spring:{VERSION}'
+  implementation 'dev.viskar.typesafe-config-addons:typesafe-config-addons-strategy:{VERSION}'
+  implementation 'dev.viskar.typesafe-config-addons:typesafe-config-addons-spring:{VERSION}'
 }
 ```
 
-## Custom Loading Strategy Addon
+## CustomConfigLoadingStrategy - ConfigFactory Addon
 
-Customize a `ConfigLoadingStrategy` to assemble a `Config` object merged from several sources. This is an alternative to using  `-Dconfig.(resource|file|url)={resource}` which requires a tailored resource that specifies a whole series of `import`s for a similar result.
-
-The custom strategy can be activated as the default ConfigLoadingStrategy, making all calls to `ConfigFactory.load()` follow this behavior.
+This addon overrides the default `ConfigFactory.load()` and `ConfigFactory.defaultApplication()` behavior with the `CustomConfigLoadingStrategy` when used.
 
 ### Usage
-Chain a series of `parse*()` and `forEachProfile()` statements to express the Config loading strategy.
-```java
- // Setup layers using environment.getActiveProfiles() 
+* Create a `CustomConfigLoadingStrategy` and chain a series of statements, replacing the default `ConfigFactory.defaultApplication()` behavior.
+* Call `install()` to register this strategy as the global strategy.
+* Future calls to `ConfigFactory.load()` or `ConfigFactory.defaultApplication()` will now use this strategy.
+```java 
+// In this example, let's assume the setup is happening in a Spring App with some profiles enabled
+Supplier<String[]> activeProfiles = environment::getActiveProfiles;
+// This controls whether the earlier(true) or latter(false) profiles 'win' in the array.
+boolean preferFirst = false;
+
  CustomConfigLoadingStrategy
         .builder()
         // Adds overrides based on Spring's Environment.getActiveProfiles()
-        .forEachProfile(env::getActiveProfiles, false, (profile, builder) -> {
-            builder.parseResource("application-" + profile);
+        .forEachProfile(activeProfiles, preferFirst, (profile, builder) -> {
+            builder.parseResourceAnySyntax("application-" + profile);
         })
-        // Default Application layer
-        .parseResource("application")
+        .defaultApplication()
         // Perhaps some dependencies have embedded resources named "defaults-{profile}" that we want to load
-        .forEachProfile(env::getActiveProfiles, false, (profile, builder) -> {
-            builder.parseResource("default-" + profile);
+        .forEachProfile(activeProfiles, preferFirst, (profile, builder) -> {
+            builder.parseResourceAnySyntax("default-" + profile);
         })
         // Install this ConfigLoadingStrategy to be the default used by ConfigFactory
         .install();
 
-// Any library calling load() will now get the customized configuration:
+// Setup complete
+// Any future calls to load() will now delegate to this strategy:
 Config config = ConfigFactory.load();
 ```
 
-All layering is performed from top to bottom, where the top layers win over the bottom layers. In the `forEachProfile(...)` blocks, the `true/false` boolean controls whether earlier or latter profiles are given higher priority.
-  
-Once the strategy is set, call either `build()` or `install()`.
-* `build()` - Returns the CustomConfigLoadingStrategy for programmatic usage.
-* `install()` - Sets this CustomConfigLoadingStrategy as the global default used by `ConfigFactory.load()` and `ConfigFactory.defaultApplication()`.
+#### Notes on ordering
+* All layering is performed from top to bottom, where the top layers win over the bottom layers.
+* In the `forEachProfile(...)` blocks, the **true/false** boolean controls whether **earlier/latter** profiles win, respectively.
 
-## Spring PropertySource Addon
+#### Additional Options
+
+The builder also supports an alternative configuration style using the `with()` methods. This is flexible for any scenario,
+and is useful to know when needing to invoke a method that the builder does not expose. 
+
+```java 
+CustomConfigLoadingStrategy
+        .builder()
+        .with(ConfigFactory::parseResources, "required.conf", ConfigParseOptions.defaults().setAllowMissing(false))
+        .with(ConfigFactory::parseResourceAnySyntax("application"))
+        .install();
+```
+
+
+
+## ConfigPropertySource - Spring Framework Addon
 
 This Spring addon can wrap a `Config` object as a `PropertySource`. The Config property paths are flattened and prepared in a way that is compatible with how Spring performs property loading.
 
@@ -116,15 +137,11 @@ protected void configureEnvironment(ConfigurableEnvironment env, String[] args) 
 }
 ```
 
-* `ConfigPropertySource.load()` - Loads the property source using `ConfigFactory.load()`.
-* `ConfigPropertySource.load(propertySourceName)` - Same as `load()`, but gives the property source a custom name.
-* `ConfigPropertySource.of(propertySourceName, config)` - Wrap your own `Config` with this property source.
-
 ### Suggestions
 
-When working in a Spring application, it is recommended to also use the Custom Loading Strategy Addon to handle Spring profile layering. 
+When working in a Spring application, it is useful to pair this with the `CustomConfigLoadingStrategy` to handle Spring profiles. 
 
-## Full Example (Config Strategy + Spring)
+## Full Example (Strategy + Spring)
 This example shows how you can combine the custom strategy and Spring PropertySource to fully configure your Spring application using Typesafe Config, instead of Spring property files.
 
 ```java
@@ -144,11 +161,11 @@ public class ExampleApplication {
                     // Let's load local resources and remote configurations from a config server
                     .forEach(env::getActiveProfiles, false, (profile, builder) -> {
                         builder.parseURL("http://config-server/example-application/application-"+profile+".conf");
-                        builder.parseResource("application-"+profile);
+                        builder.parseResourceAnySyntax("application-"+profile);
                     })
                     // Then adds the application's base layer
-                    .parseURL("http://config-server/example-application/application.conf");
-                    .parseResource("application");
+                    .parseURL("http://config-server/example-application/application.conf")
+                    .defaultApplication()
                     // Allow for defaults too (maybe dependencies include these)
                     .forEach(env::getActiveProfiles, false, (profile, builder) -> {
                         builder.parseURL("http://config-server/example-application/defaults-"+profile+".conf");
@@ -180,10 +197,10 @@ The above code assembles an application environment that can load from various p
 - defaults-dev.conf
 - reference.conf
 
-# Overrides from a config server would apply on-top-of their respective application- or default- files.
-- /example-application/application-prod.conf
-- /example-application/application-dev.conf
-- /example-application/application.conf
-- /example-application/defaults-prod.conf
-- /example-application/defaults-dev.conf
+# Overrides from a config server would apply immediately on-top-of their respective application- or default- files.
+- //config-server/example-application/application-prod.conf
+- //config-server/example-application/application-dev.conf
+- //config-server/example-application/application.conf
+- //config-server/example-application/defaults-prod.conf
+- //config-server/example-application/defaults-dev.conf
 ```
