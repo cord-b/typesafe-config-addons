@@ -115,7 +115,7 @@ and is useful to know when needing to invoke a method that the builder does not 
 CustomConfigLoadingStrategy
         .builder()
         .with(ConfigFactory::parseResources, "required.conf", ConfigParseOptions.defaults().setAllowMissing(false))
-        .with(ConfigFactory::parseResourceAnySyntax("application"))
+        .with(ConfigFactory::parseResourceAnySyntax, "application")
         .install();
 ```
 
