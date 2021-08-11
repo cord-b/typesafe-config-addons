@@ -1,12 +1,15 @@
 # Addons for Typesafe Config
 
 This project contains addons to supplement Typesafe Config:
-* **CustomConfigLoadingStrategy**
-  * Implements `ConfigLoadingStrategy` that can be fully customized with a builder API, and then installed as the global `ConfigLoadingStrategy`.
+
+### CustomConfigLoadingStrategy
+Implements **ConfigLoadingStrategy** that can be fully customized with a builder API, and then installed as the global **ConfigLoadingStrategy**.
  
  
-* **ConfigPropertySource (for Spring Framework)**
-  * A `PropertySoruce` wrapper for `Config` objects so that they can be loaded into Spring Framework. Handles converting property paths into Spring conventions (maps, array notation, etc).
+### ConfigPropertySource (for Spring Framework)
+A Spring **PropertySource** implementation backed by a **Config** object.
+Allows bridging **Config** into Spring's property sources.
+The property source flattens config properties to be compatible with Spring property naming conventions.
 
 ## Artifacts
 ```xml
@@ -96,7 +99,7 @@ protected void configureEnvironment(ConfigurableEnvironment env, String[] args) 
 
 ### Suggestions
 
-When working in a Spring application, it is useful to pair this with the `CustomConfigLoadingStrategy` to handle Spring profiles. 
+When working in a Spring application, it is useful to pair this with the **CustomConfigLoadingStrategy** to handle Spring profiles. 
 
 ## Full Example (Strategy + Spring)
 This example shows how you can combine the custom strategy and Spring PropertySource to fully configure your Spring application using Typesafe Config, instead of Spring property files.
