@@ -8,6 +8,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - id: maven-git-variables
+        name: Setup maven git variables
+        run: |
+          if  [[ "$GITHUB_REF" = refs/tags/* ]]; then
+             echo Using VERSIONING_GIT_TAG=${GITHUB_REF#refs/tags/}
+             export VERSIONING_GIT_TAG=${GITHUB_REF#refs/tags/};
+          elif [[ "$GITHUB_REF" = refs/heads/* ]]; then
+             echo using VERSIONING_GIT_BRANCH=${GITHUB_REF#refs/heads/}
+             export VERSIONING_GIT_BRANCH=${GITHUB_REF#refs/heads/};
+          elif [[ "$GITHUB_REF" = refs/pull/*/merge ]]; then
+            echo using VERSIONING_GIT_BRANCH=${GITHUB_REF#refs/pull/}
+            export VERSIONING_GIT_BRANCH=${GITHUB_REF#refs/pull/};
+          fi
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v1
         with:
