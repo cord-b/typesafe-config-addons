@@ -1,85 +1,42 @@
 # Addons for Typesafe Config
 
-This project contains addons as sub-modules to enhance Typesafe Config usage:
-* **CustomConfigLoadingStrategy - ConfigFactory Addon**
+This project contains addons to supplement Typesafe Config:
+* **CustomConfigLoadingStrategy**
   * Implements `ConfigLoadingStrategy` that can be fully customized with a builder API, and then installed as the global `ConfigLoadingStrategy`.
  
  
-* **ConfigPropertySource - Addon for Spring Framework**
+* **ConfigPropertySource (for Spring Framework)**
   * A `PropertySoruce` wrapper for `Config` objects so that they can be loaded into Spring Framework. Handles converting property paths into Spring conventions (maps, array notation, etc).
 
-## Getting these Dependencies
-Artifacts are available in the [jitpack.io](https://jitpack.io/) repository. See examples below:
-* Note: `{version}` can either be a git tag (`x.y.z`) or a branch (`branch-SNAPSHOT`).
-
-### Maven
+## Artifacts
 ```xml
-<!-- Add jitpack repository -->
-<repositories>
-    <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
-    </repository>
-</repositories>
-```
-```xml
-<!-- All Modules -->
 <dependency>
     <groupId>dev.viskar</groupId>
-    <artifactId>typesafe-config-addons</artifactId>
-    <version>${version}</version>
-</dependency>
-```
-```xml
-<!-- Or Individual Dependencies -->
-<dependency>
-    <groupId>dev.viskar.typesafe-config-addons</groupId>
     <artifactId>typesafe-config-addons-strategy</artifactId>
     <version>${version}</version>
 </dependency>
 <dependency>
-    <groupId>dev.viskar.typesafe-config-addons</groupId>
+    <groupId>dev.viskar</groupId>
     <artifactId>typesafe-config-addons-spring</artifactId>
     <version>${version}</version>
 </dependency>
 ```
 
-### Gradle
-```groovy
-// Add Repository
-allprojects {
-  repositories {
-    ...
-    maven { url 'https://jitpack.io' }
-  }
-}
-```
+## CustomConfigLoadingStrategy
 
-```groovy
-// All modules
-dependencies {
-  implementation 'dev.viskar:typesafe-config-addons:{VERSION}'
-}
-```
-```groovy
-// Individual modules
-dependencies {
-  implementation 'dev.viskar.typesafe-config-addons:typesafe-config-addons-strategy:{VERSION}'
-  implementation 'dev.viskar.typesafe-config-addons:typesafe-config-addons-spring:{VERSION}'
-}
-```
-
-## CustomConfigLoadingStrategy - ConfigFactory Addon
-
-This addon overrides the default `ConfigFactory.load()` and `ConfigFactory.defaultApplication()` behavior with the `CustomConfigLoadingStrategy` when used.
+This addon provides a custom **ConfigLoadingStrategy** that replaces the default `ConfigFactory.load()` and `ConfigFactory.defaultApplication()` behavior.
 
 ### Usage
-* Create a `CustomConfigLoadingStrategy` and chain a series of statements, replacing the default `ConfigFactory.defaultApplication()` behavior.
-* Call `install()` to register this strategy as the global strategy.
+* Create a **CustomConfigLoadingStrategy** and customize it using the builder.
+* Call `install()` to register this strategy as the global strategy, replacing the `ConfigFactory.load()` default behavior.
 * Future calls to `ConfigFactory.load()` or `ConfigFactory.defaultApplication()` will now use this strategy.
+
+### Example
+In this example, let's assume the setup is happening in a Spring App with some profiles enabled
 ```java 
 // In this example, let's assume the setup is happening in a Spring App with some profiles enabled
 Supplier<String[]> activeProfiles = environment::getActiveProfiles;
+
 // This controls whether the earlier(true) or latter(false) profiles 'win' in the array.
 boolean preferFirst = false;
 
@@ -121,7 +78,7 @@ CustomConfigLoadingStrategy
 
 
 
-## ConfigPropertySource - Spring Framework Addon
+## ConfigPropertySource (for Spring)
 
 This Spring addon can wrap a `Config` object as a `PropertySource`. The Config property paths are flattened and prepared in a way that is compatible with how Spring performs property loading.
 
