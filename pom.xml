@@ -22,6 +22,14 @@
         </license>
     </licenses>
 
+    <developers>
+        <developer>
+            <id>cord-b</id>
+            <name>Cord Bartlett</name>
+            <email />
+        </developer>
+    </developers>
+
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>
